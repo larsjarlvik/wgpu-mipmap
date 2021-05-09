@@ -3,10 +3,10 @@ use std::{collections::HashMap, num::NonZeroU32};
 use wgpu::{
     util::make_spirv, AddressMode, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
     BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType, CommandEncoder,
-    CullMode, Device, FilterMode, FragmentState, FrontFace, LoadOp, MultisampleState, Operations,
-    PipelineLayoutDescriptor, PrimitiveState, RenderPassColorAttachmentDescriptor,
-    RenderPassDescriptor, RenderPipeline, RenderPipelineDescriptor, Sampler, SamplerDescriptor,
-    ShaderFlags, ShaderModuleDescriptor, ShaderStage, Texture, TextureAspect, TextureDescriptor,
+    Device, Face, FilterMode, FragmentState, FrontFace, LoadOp, MultisampleState, Operations,
+    PipelineLayoutDescriptor, PrimitiveState, RenderPassColorAttachment, RenderPassDescriptor,
+    RenderPipeline, RenderPipelineDescriptor, Sampler, SamplerDescriptor, ShaderFlags,
+    ShaderModuleDescriptor, ShaderStage, Texture, TextureAspect, TextureDescriptor,
     TextureDimension, TextureFormat, TextureSampleType, TextureUsage, TextureViewDescriptor,
     TextureViewDimension, VertexState,
 };
@@ -208,7 +208,7 @@ impl RenderMipmapGenerator {
                         primitive: PrimitiveState {
                             topology: wgpu::PrimitiveTopology::TriangleList,
                             front_face: FrontFace::Ccw,
-                            cull_mode: CullMode::Back,
+                            cull_mode: Some(Face::Back),
                             ..Default::default()
                         },
                         depth_stencil: None,
@@ -323,7 +323,7 @@ impl RenderMipmapGenerator {
                     dimension: None,
                     aspect: TextureAspect::All,
                     base_mip_level,
-                    level_count: NonZeroU32::new(1),
+                    mip_level_count: NonZeroU32::new(1),
                     array_layer_count: None,
                     base_array_layer: 0,
                 })
@@ -348,8 +348,8 @@ impl RenderMipmapGenerator {
             });
             let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
                 label: None,
-                color_attachments: &[RenderPassColorAttachmentDescriptor {
-                    attachment: &dst_view,
+                color_attachments: &[RenderPassColorAttachment {
+                    view: &dst_view,
                     resolve_target: None,
                     ops: Operations {
                         load: LoadOp::Load,
@@ -431,7 +431,7 @@ mod tests {
         let texture_extent = wgpu::Extent3d {
             width: size,
             height: size,
-            depth: 1,
+            depth_or_array_layers: 1,
         };
         let texture_descriptor = wgpu::TextureDescriptor {
             size: texture_extent,
@@ -459,7 +459,7 @@ mod tests {
         let texture_extent = wgpu::Extent3d {
             width: size,
             height: size,
-            depth: 1,
+            depth_or_array_layers: 1,
         };
         let texture_descriptor = wgpu::TextureDescriptor {
             size: texture_extent,
@@ -488,7 +488,7 @@ mod tests {
         let texture_extent = wgpu::Extent3d {
             width: size,
             height: size,
-            depth: 1,
+            depth_or_array_layers: 1,
         };
         let texture_descriptor = wgpu::TextureDescriptor {
             size: texture_extent,

@@ -1,5 +1,5 @@
 use wgpu::{
-    CommandEncoder, Device, Origin3d, Texture, TextureCopyView, TextureDescriptor, TextureUsage,
+    CommandEncoder, Device, ImageCopyTexture, Origin3d, Texture, TextureDescriptor, TextureUsage,
 };
 
 use crate::{backends::RenderMipmapGenerator, core::*, util::get_mip_extent};
@@ -58,12 +58,12 @@ impl<'a> MipmapGenerator for CopyMipmapGenerator<'a> {
         let mip_count = tmp_descriptor.mip_level_count;
         for i in 0..mip_count {
             encoder.copy_texture_to_texture(
-                TextureCopyView {
+                ImageCopyTexture {
                     texture: &tmp_texture,
                     mip_level: i,
                     origin: Origin3d::default(),
                 },
-                TextureCopyView {
+                ImageCopyTexture {
                     texture: &texture,
                     mip_level: i + 1,
                     origin: Origin3d::default(),
@@ -125,7 +125,7 @@ mod tests {
         let texture_extent = wgpu::Extent3d {
             width: size,
             height: size,
-            depth: 1,
+            depth_or_array_layers: 1,
         };
         let texture_descriptor = wgpu::TextureDescriptor {
             size: texture_extent,
@@ -153,7 +153,7 @@ mod tests {
         let texture_extent = wgpu::Extent3d {
             width: size,
             height: size,
-            depth: 1,
+            depth_or_array_layers: 1,
         };
         let texture_descriptor = wgpu::TextureDescriptor {
             size: texture_extent,

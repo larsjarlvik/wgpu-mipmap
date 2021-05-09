@@ -1,3 +1,5 @@
+use std::num::NonZeroU32;
+
 /// utilities used throughout the project. Not part of the official API.
 use crate::core::*;
 
@@ -51,21 +53,21 @@ pub async fn generate_and_copy_to_cpu(
     let texture = device.create_texture(&texture_descriptor);
     // Upload `data` to the texture
     queue.write_texture(
-        wgpu::TextureCopyView {
+        wgpu::ImageCopyTexture {
             texture: &texture,
             mip_level: 0,
             origin: wgpu::Origin3d::ZERO,
         },
         &data,
-        wgpu::TextureDataLayout {
+        wgpu::ImageDataLayout {
             offset: 0,
-            bytes_per_row: buffer_dimensions.unpadded_bytes_per_row as u32,
-            rows_per_image: 0,
+            bytes_per_row: NonZeroU32::new(buffer_dimensions.unpadded_bytes_per_row as u32),
+            rows_per_image: NonZeroU32::new(0),
         },
         wgpu::Extent3d {
             width: buffer_dimensions.width as u32,
             height: buffer_dimensions.height as u32,
-            depth: 1,
+            depth_or_array_layers: 1,
         },
     );
     let mut encoder =
@@ -86,7 +88,7 @@ pub async fn generate_and_copy_to_cpu(
             let mip_texture_extent = wgpu::Extent3d {
                 width: mip_width as u32,
                 height: mip_height as u32,
-                depth: 1,
+                depth_or_array_layers: 1,
             };
             let buffer = device.create_buffer(&wgpu::BufferDescriptor {
                 label: None,
@@ -95,17 +97,17 @@ pub async fn generate_and_copy_to_cpu(
                 mapped_at_creation: false,
             });
             encoder.copy_texture_to_buffer(
-                wgpu::TextureCopyView {
+                wgpu::ImageCopyTexture {
                     texture: &texture,
                     mip_level: i,
                     origin: wgpu::Origin3d::ZERO,
                 },
-                wgpu::BufferCopyView {
+                wgpu::ImageCopyBuffer {
                     buffer: &buffer,
-                    layout: wgpu::TextureDataLayout {
+                    layout: wgpu::ImageDataLayout {
                         offset: 0,
-                        bytes_per_row: mip_dimensions.padded_bytes_per_row as u32,
-                        rows_per_image: 0,
+                        bytes_per_row: NonZeroU32::new(mip_dimensions.padded_bytes_per_row as u32),
+                        rows_per_image: NonZeroU32::new(0),
                     },
                 },
                 mip_texture_extent,
@@ -278,10 +280,11 @@ pub(crate) async fn wgpu_setup() -> (wgpu::Instance, wgpu::Adapter, wgpu::Device
 pub(crate) fn get_mip_extent(extent: &wgpu::Extent3d, level: u32) -> wgpu::Extent3d {
     let mip_width = ((extent.width as f32) / (2u32.pow(level) as f32)).floor() as u32;
     let mip_height = ((extent.height as f32) / (2u32.pow(level) as f32)).floor() as u32;
-    let mip_depth = ((extent.depth as f32) / (2u32.pow(level) as f32)).floor() as u32;
+    let mip_depth =
+        ((extent.depth_or_array_layers as f32) / (2u32.pow(level) as f32)).floor() as u32;
     wgpu::Extent3d {
         width: mip_width.max(1),
         height: mip_height.max(1),
-        depth: mip_depth.max(1),
+        depth_or_array_layers: mip_depth.max(1),
     }
 }
