@@ -35,7 +35,7 @@ fn main() {
             // Generate texture data on the CPU
             let cat_png_bytes = include_bytes!("cat.png");
             let cat_image = image::load_from_memory(cat_png_bytes).expect("this should work");
-            let cat_image = cat_image.into_rgba();
+            let cat_image = cat_image.into_rgba8();
             let width = cat_image.width();
             let height = cat_image.height();
             let mip_level_count = 1 + (width.max(height) as f64).log2().floor() as u32;
@@ -44,7 +44,7 @@ fn main() {
             let texture_extent = wgpu::Extent3d {
                 width,
                 height,
-                depth: 1,
+                depth_or_array_layers: 1,
             };
             let supported_usage: std::collections::HashMap<_, _> = vec![
                 (

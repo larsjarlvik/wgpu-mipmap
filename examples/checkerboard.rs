@@ -38,7 +38,7 @@ fn main() {
             let texture_extent = wgpu::Extent3d {
                 width,
                 height,
-                depth: 1,
+                depth_or_array_layers: 1,
             };
             // Generate different mipmaps for both a linear and srgb format
             // with both the render and compute code paths
