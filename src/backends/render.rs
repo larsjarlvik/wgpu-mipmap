@@ -5,9 +5,9 @@ use wgpu::{
     BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType, CommandEncoder,
     Device, Face, FilterMode, FragmentState, FrontFace, LoadOp, MultisampleState, Operations,
     PipelineLayoutDescriptor, PrimitiveState, RenderPassColorAttachment, RenderPassDescriptor,
-    RenderPipeline, RenderPipelineDescriptor, Sampler, SamplerDescriptor, ShaderFlags,
-    ShaderModuleDescriptor, ShaderStage, Texture, TextureAspect, TextureDescriptor,
-    TextureDimension, TextureFormat, TextureSampleType, TextureUsage, TextureViewDescriptor,
+    RenderPipeline, RenderPipelineDescriptor, Sampler, SamplerDescriptor,
+    ShaderModuleDescriptor, ShaderStages, Texture, TextureAspect, TextureDescriptor,
+    TextureDimension, TextureFormat, TextureSampleType, TextureUsages, TextureViewDescriptor,
     TextureViewDimension, VertexState,
 };
 
@@ -79,12 +79,10 @@ fn to_sample_type(format: TextureFormat) -> TextureSampleType {
         | TextureFormat::Etc2RgbUnormSrgb
         | TextureFormat::Etc2RgbA1Unorm
         | TextureFormat::Etc2RgbA1UnormSrgb
-        | TextureFormat::Etc2RgbA8Unorm
-        | TextureFormat::Etc2RgbA8UnormSrgb
         | TextureFormat::EacRUnorm
         | TextureFormat::EacRSnorm
-        | TextureFormat::EtcRgUnorm
-        | TextureFormat::EtcRgSnorm
+        | TextureFormat::EacRgUnorm
+        | TextureFormat::EacRgSnorm
         | TextureFormat::Astc4x4RgbaUnorm
         | TextureFormat::Astc4x4RgbaUnormSrgb
         | TextureFormat::Astc5x4RgbaUnorm
@@ -112,14 +110,15 @@ fn to_sample_type(format: TextureFormat) -> TextureSampleType {
         | TextureFormat::Astc12x10RgbaUnorm
         | TextureFormat::Astc12x10RgbaUnormSrgb
         | TextureFormat::Astc12x12RgbaUnorm
-        | TextureFormat::Astc12x12RgbaUnormSrgb => TextureSampleType::Float { filterable: true },
+        | TextureFormat::Astc12x12RgbaUnormSrgb
+        | TextureFormat::Rgb9e5Ufloat => TextureSampleType::Float { filterable: true },
     }
 }
 
 impl RenderMipmapGenerator {
     /// Returns the texture usage `RenderMipmapGenerator` requires for mipmap generation.
-    pub fn required_usage() -> TextureUsage {
-        TextureUsage::RENDER_ATTACHMENT | TextureUsage::SAMPLED
+    pub fn required_usage() -> TextureUsages {
+        TextureUsages::RENDER_ATTACHMENT | TextureUsages::TEXTURE_BINDING
     }
 
     /// Creates a new `RenderMipmapGenerator`. Once created, it can be used repeatedly to
@@ -151,7 +150,7 @@ impl RenderMipmapGenerator {
                         entries: &[
                             BindGroupLayoutEntry {
                                 binding: 0,
-                                visibility: ShaderStage::FRAGMENT,
+                                visibility: ShaderStages::FRAGMENT,
                                 ty: BindingType::Texture {
                                     view_dimension: TextureViewDimension::D2,
                                     sample_type,
@@ -161,7 +160,7 @@ impl RenderMipmapGenerator {
                             },
                             BindGroupLayoutEntry {
                                 binding: 1,
-                                visibility: ShaderStage::FRAGMENT,
+                                visibility: ShaderStages::FRAGMENT,
                                 ty: BindingType::Sampler {
                                     filtering: true,
                                     comparison: false,
@@ -180,12 +179,10 @@ impl RenderMipmapGenerator {
             let vertex_module = device.create_shader_module(&ShaderModuleDescriptor {
                 label: None,
                 source: make_spirv(include_bytes!("shaders/triangle.vert.spv")),
-                flags: ShaderFlags::empty(),
             });
             let box_filter = device.create_shader_module(&ShaderModuleDescriptor {
                 label: None,
                 source: make_spirv(include_bytes!("shaders/box.frag.spv")),
-                flags: ShaderFlags::empty(),
             });
             for format in format_hints {
                 let fragment_module = &box_filter;
@@ -291,7 +288,7 @@ impl RenderMipmapGenerator {
             return Err(Error::UnsupportedDimension(src_dim));
         }
         // src texture must be sampled
-        if !src_usage.contains(TextureUsage::SAMPLED) {
+        if !src_usage.contains(TextureUsages::TEXTURE_BINDING) {
             return Err(Error::UnsupportedUsage(src_usage));
         }
         // dst texture must be sampled and output attachment
@@ -467,13 +464,13 @@ mod tests {
             format,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            usage: wgpu::TextureUsage::empty(),
+            usage: wgpu::TextureUsages::empty(),
             label: None,
         };
         futures::executor::block_on(async {
             let res = generate_test(&texture_descriptor).await;
             assert!(res.is_err());
-            assert!(res.err() == Some(Error::UnsupportedUsage(wgpu::TextureUsage::empty())));
+            assert!(res.err() == Some(Error::UnsupportedUsage(wgpu::TextureUsages::empty())));
         });
     }
 
@@ -496,7 +493,7 @@ mod tests {
             format,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::RENDER_ATTACHMENT,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT,
             label: None,
         };
         futures::executor::block_on(async {

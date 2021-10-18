@@ -19,7 +19,7 @@ pub trait MipmapGenerator {
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum Error {
     #[error("Unsupported texture usage `{0:?}`.\nYour texture usage must contain one of: 1. TextureUsage::STORAGE, 2. TextureUsage::OUTPUT_ATTACHMENT | TextureUsage::SAMPLED, 3. TextureUsage::COPY_SRC | TextureUsage::COPY_DST")]
-    UnsupportedUsage(wgpu::TextureUsage),
+    UnsupportedUsage(wgpu::TextureUsages),
     #[error(
         "Unsupported texture dimension `{0:?}. You texture dimension must be TextureDimension::D2`"
     )]

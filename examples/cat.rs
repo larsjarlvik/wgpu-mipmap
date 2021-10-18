@@ -10,12 +10,13 @@ fn main() {
     #[cfg(feature = "debug")]
     rd.start_frame_capture(std::ptr::null(), std::ptr::null());
 
-    let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
+    let instance = wgpu::Instance::new(wgpu::Backends::PRIMARY);
     futures::executor::block_on((|| {
         async {
             let adapter = instance
                 .request_adapter(&wgpu::RequestAdapterOptions {
                     power_preference: wgpu::PowerPreference::HighPerformance,
+                    force_fallback_adapter: false,
                     compatible_surface: None,
                 })
                 .await
@@ -25,7 +26,7 @@ fn main() {
                 .request_device(
                     &wgpu::DeviceDescriptor {
                         label: None,
-                        features: wgpu::Features::empty(),
+                        features: wgpu::Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES,
                         limits: wgpu::Limits::default(),
                     },
                     None,
@@ -67,7 +68,7 @@ fn main() {
                     format,
                     sample_count: 1,
                     dimension: wgpu::TextureDimension::D2,
-                    usage: *usage | wgpu::TextureUsage::COPY_DST | wgpu::TextureUsage::COPY_SRC,
+                    usage: *usage | wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::COPY_SRC,
                     label: None,
                 };
 

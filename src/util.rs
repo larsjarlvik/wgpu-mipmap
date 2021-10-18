@@ -57,6 +57,7 @@ pub async fn generate_and_copy_to_cpu(
             texture: &texture,
             mip_level: 0,
             origin: wgpu::Origin3d::ZERO,
+            aspect: wgpu::TextureAspect::All,
         },
         &data,
         wgpu::ImageDataLayout {
@@ -93,7 +94,7 @@ pub async fn generate_and_copy_to_cpu(
             let buffer = device.create_buffer(&wgpu::BufferDescriptor {
                 label: None,
                 size,
-                usage: wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::MAP_READ,
+                usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
                 mapped_at_creation: false,
             });
             encoder.copy_texture_to_buffer(
@@ -101,6 +102,7 @@ pub async fn generate_and_copy_to_cpu(
                     texture: &texture,
                     mip_level: i,
                     origin: wgpu::Origin3d::ZERO,
+                    aspect: wgpu::TextureAspect::All,
                 },
                 wgpu::ImageCopyBuffer {
                     buffer: &buffer,
@@ -249,10 +251,11 @@ fn format_bytes_per_channel(format: &wgpu::TextureFormat) -> usize {
 #[doc(hidden)]
 #[allow(dead_code)]
 pub(crate) async fn wgpu_setup() -> (wgpu::Instance, wgpu::Adapter, wgpu::Device, wgpu::Queue) {
-    let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
+    let instance = wgpu::Instance::new(wgpu::Backends::all());
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions {
             power_preference: wgpu::PowerPreference::HighPerformance,
+            force_fallback_adapter: true,
             compatible_surface: None,
         })
         .await
@@ -262,7 +265,7 @@ pub(crate) async fn wgpu_setup() -> (wgpu::Instance, wgpu::Adapter, wgpu::Device
         .request_device(
             &wgpu::DeviceDescriptor {
                 label: None,
-                features: wgpu::Features::empty(),
+                features: wgpu::Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES,
                 limits: wgpu::Limits::default(),
             },
             None,
