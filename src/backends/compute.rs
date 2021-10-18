@@ -4,9 +4,9 @@ use wgpu::{
     util::make_spirv, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
     BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType, CommandEncoder,
     ComputePassDescriptor, ComputePipeline, ComputePipelineDescriptor, Device,
-    PipelineLayoutDescriptor, ShaderFlags, ShaderModule, ShaderModuleDescriptor, ShaderStage,
+    PipelineLayoutDescriptor, ShaderModule, ShaderModuleDescriptor, ShaderStages,
     StorageTextureAccess, Texture, TextureAspect, TextureDescriptor, TextureDimension,
-    TextureFormat, TextureUsage, TextureViewDescriptor, TextureViewDimension,
+    TextureFormat, TextureUsages, TextureViewDescriptor, TextureViewDimension,
 };
 
 /// Generates mipmaps for textures with storage usage.
@@ -18,8 +18,8 @@ pub struct ComputeMipmapGenerator {
 
 impl ComputeMipmapGenerator {
     /// Returns the texture usage `ComputeMipmapGenerator` requires for mipmap generation.
-    pub fn required_usage() -> TextureUsage {
-        TextureUsage::STORAGE
+    pub fn required_usage() -> TextureUsages {
+        TextureUsages::STORAGE_BINDING
     }
 
     /// Creates a new `ComputeMipmapGenerator`. Once created, it can be used repeatedly to
@@ -138,7 +138,6 @@ fn shader_for_format(device: &Device, format: TextureFormat) -> Option<ShaderMod
         Some(device.create_shader_module(&ShaderModuleDescriptor {
             label: None,
             source: make_spirv(d),
-            flags: ShaderFlags::empty(),
         }))
     };
     match format {
@@ -183,7 +182,7 @@ fn bind_group_layout_for_format(device: &Device, format: TextureFormat) -> BindG
         entries: &[
             BindGroupLayoutEntry {
                 binding: 0,
-                visibility: ShaderStage::COMPUTE,
+                visibility: ShaderStages::COMPUTE,
                 ty: BindingType::StorageTexture {
                     access: StorageTextureAccess::ReadOnly,
                     format,
@@ -193,9 +192,9 @@ fn bind_group_layout_for_format(device: &Device, format: TextureFormat) -> BindG
             },
             BindGroupLayoutEntry {
                 binding: 1,
-                visibility: ShaderStage::COMPUTE,
+                visibility: ShaderStages::COMPUTE,
                 ty: BindingType::StorageTexture {
-                    access: StorageTextureAccess::ReadOnly,
+                    access: StorageTextureAccess::WriteOnly,
                     format,
                     view_dimension: TextureViewDimension::D2,
                 },
@@ -334,13 +333,13 @@ mod tests {
             format,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            usage: wgpu::TextureUsage::empty(),
+            usage: wgpu::TextureUsages::empty(),
             label: None,
         };
         futures::executor::block_on(async {
             let res = generate_test(&texture_descriptor).await;
             assert!(res.is_err());
-            assert!(res.err() == Some(Error::UnsupportedUsage(wgpu::TextureUsage::empty())));
+            assert!(res.err() == Some(Error::UnsupportedUsage(wgpu::TextureUsages::empty())));
         });
     }
 

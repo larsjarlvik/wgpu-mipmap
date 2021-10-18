@@ -12,6 +12,7 @@ keywords = ["wgpu", "graphics", "mipmaps"]
 categories = ["graphics", "rendering"]
 maintenance = {status="actively-developed"}
 exclude = ["examples/**/*", ".github/**/*"]
+resolver = "2"
 
 [features]
 debug = ["renderdoc"]
@@ -22,7 +23,7 @@ log = "0.4"
 # cargo does not support optional dev dependencies
 renderdoc = { version = "0.10.0", optional = true }
 thiserror = "1.0"
-wgpu = "0.9.0"
+wgpu = { version = "0.11", features = ["spirv"] }
 
 [dev-dependencies]
 bytemuck = "1.4.1"

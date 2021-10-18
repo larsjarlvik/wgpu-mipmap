@@ -9,9 +9,9 @@ pub struct RecommendedMipmapGenerator {
 }
 
 /// A list of supported texture formats.
-const SUPPORTED_FORMATS: [wgpu::TextureFormat; 17] = {
+const SUPPORTED_FORMATS: &'static [wgpu::TextureFormat] = {
     use wgpu::TextureFormat;
-    [
+    &[
         TextureFormat::R8Unorm,
         TextureFormat::R8Snorm,
         TextureFormat::R16Float,
@@ -148,8 +148,8 @@ mod tests {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             usage: crate::RenderMipmapGenerator::required_usage()
-                | wgpu::TextureUsage::COPY_DST
-                | wgpu::TextureUsage::COPY_SRC,
+                | wgpu::TextureUsages::COPY_DST
+                | wgpu::TextureUsages::COPY_SRC,
             label: None,
         };
         dbg!(format);
@@ -208,8 +208,8 @@ mod tests {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             usage: crate::RenderMipmapGenerator::required_usage()
-                | wgpu::TextureUsage::COPY_DST
-                | wgpu::TextureUsage::COPY_SRC,
+                | wgpu::TextureUsages::COPY_DST
+                | wgpu::TextureUsages::COPY_SRC,
             label: None,
         };
         futures::executor::block_on(async {
@@ -263,8 +263,8 @@ mod tests {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             usage: crate::RenderMipmapGenerator::required_usage()
-                | wgpu::TextureUsage::COPY_DST
-                | wgpu::TextureUsage::COPY_SRC,
+                | wgpu::TextureUsages::COPY_DST
+                | wgpu::TextureUsages::COPY_SRC,
             label: None,
         };
         futures::executor::block_on(async {
@@ -324,8 +324,8 @@ mod tests {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             usage: crate::ComputeMipmapGenerator::required_usage()
-                | wgpu::TextureUsage::COPY_DST
-                | wgpu::TextureUsage::COPY_SRC,
+                | wgpu::TextureUsages::COPY_DST
+                | wgpu::TextureUsages::COPY_SRC,
             label: None,
         };
         futures::executor::block_on(async {
@@ -382,8 +382,8 @@ mod tests {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             usage: crate::ComputeMipmapGenerator::required_usage()
-                | wgpu::TextureUsage::COPY_DST
-                | wgpu::TextureUsage::COPY_SRC,
+                | wgpu::TextureUsages::COPY_DST
+                | wgpu::TextureUsages::COPY_SRC,
             label: None,
         };
         futures::executor::block_on(async {
@@ -437,8 +437,8 @@ mod tests {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             usage: crate::ComputeMipmapGenerator::required_usage()
-                | wgpu::TextureUsage::COPY_DST
-                | wgpu::TextureUsage::COPY_SRC,
+                | wgpu::TextureUsages::COPY_DST
+                | wgpu::TextureUsages::COPY_SRC,
             label: None,
         };
         futures::executor::block_on(async {
@@ -499,8 +499,8 @@ mod tests {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             usage: crate::RenderMipmapGenerator::required_usage()
-                | wgpu::TextureUsage::COPY_DST
-                | wgpu::TextureUsage::COPY_SRC,
+                | wgpu::TextureUsages::COPY_DST
+                | wgpu::TextureUsages::COPY_SRC,
             label: None,
         };
         futures::executor::block_on(async {
@@ -559,8 +559,8 @@ mod tests {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             usage: crate::ComputeMipmapGenerator::required_usage()
-                | wgpu::TextureUsage::COPY_DST
-                | wgpu::TextureUsage::COPY_SRC,
+                | wgpu::TextureUsages::COPY_DST
+                | wgpu::TextureUsages::COPY_SRC,
             label: None,
         };
         futures::executor::block_on(async {
@@ -619,8 +619,8 @@ mod tests {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             usage: crate::CopyMipmapGenerator::required_usage()
-                | wgpu::TextureUsage::COPY_SRC
-                | wgpu::TextureUsage::COPY_DST,
+                | wgpu::TextureUsages::COPY_SRC
+                | wgpu::TextureUsages::COPY_DST,
             label: None,
         };
         futures::executor::block_on(async {
